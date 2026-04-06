@@ -148,10 +148,10 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
 
-#elif defined(BOARD_toucan)
-	#define USBD_PRODUCT_STRING_FS	 "TouCAN Probe gs_usb"
-	#define USBD_MANUFACTURER_STRING "TouCAN Probe"
-	#define DFU_INTERFACE_STRING_FS	 "TouCAN Probe firmware upgrade interface"
+#elif defined(BOARD_falcan)
+	#define USBD_PRODUCT_STRING_FS	 "FalCAN Probe gs_usb"
+	#define USBD_MANUFACTURER_STRING "FalCAN Probe"
+	#define DFU_INTERFACE_STRING_FS	 "FalCAN Probe firmware upgrade interface"
 
 	#define CONFIG_HSE_OSC_SPEED	 8000000
 	#define TIM2_CLOCK_SPEED		 48000000
