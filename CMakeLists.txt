@@ -339,6 +339,13 @@ foreach (TGTNAME IN LISTS TGTF072_LIST)
 	endif()
 endforeach()
 
+foreach (TGTNAME IN LISTS TGTF072C8_LIST)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
+	if (BUILD_${TGTNAME})
+		add_f072c8_target(${TGTNAME})
+	endif()
+endforeach()
+
 foreach (TGTNAME IN LISTS TGTF407_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
