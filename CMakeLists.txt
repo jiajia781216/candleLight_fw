@@ -198,6 +198,16 @@ populate_ldscript(CPU_FAMILY STM32F072XB
 	HEAP_SIZE 0k
 )
 
+# 新增：STM32F072C8T6 (64KB Flash)
+populate_ldscript(CPU_FAMILY STM32F072X8
+	FLASH_START 0x08000000
+	FLASH_SIZE 64k
+	RAM_START 0x20000000
+	RAM_SIZE 16k
+	STACK_SIZE 2k
+	HEAP_SIZE 0k
+)
+
 populate_ldscript(CPU_FAMILY STM32F407XE
 	FLASH_START 0x08000000
 	FLASH_SIZE 512k
@@ -254,6 +264,17 @@ function(add_f072_target TGTNAME)
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
 endfunction()
 
+function(add_f072c8_target TGTNAME)
+	add_target_common(${TGTNAME} STM32F072X8)
+	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
+	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0 CONFIG_BXCAN)
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
+	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
+	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
+	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
+	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
+endfunction()
+
 function(add_f407_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F407XE)
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4 CONFIG_BXCAN)
@@ -291,6 +312,10 @@ set(TGTF072_LIST
 	"FYSETC_UCAN"
 	"can_module_com_classic"
 	"candleLight"
+)
+# 新增：STM32F072C8T6 目标列表
+set(TGTF072C8_LIST
+	"Woloong_U2C"
 )
 set(TGTF407_LIST
 	"STM32F4_DevBoard"
