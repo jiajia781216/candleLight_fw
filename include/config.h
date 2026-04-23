@@ -338,6 +338,31 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High		 0
 
+#elif defined(BOARD_Woloong_U2C)
+	#define USBD_PRODUCT_STRING_FS	 "Woloong_U2C USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING "Woloong"
+	#define DFU_INTERFACE_STRING_FS	 "Woloong_U2C firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	/* SIT3051TK 无 Silent 控制引脚，不定义 CONFIG_PHY */
+	/* Rs 引脚已在硬件上接地，无需软件干预 */
+
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_0
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High		 0
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_1
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
+
 /*************** STM32F407 ***************/
 
 #elif defined(BOARD_STM32F4_DevBoard)
