@@ -1,29 +1,3 @@
-/*
-
-The MIT License (MIT)
-
-Copyright (c) 2016 Hubert Denkmair
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-*/
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -49,9 +23,12 @@ THE SOFTWARE.
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 
-/* 在 main.c 顶部或合适位置添加静态变量 */
+/* 心跳 LED 状态变量 - 必须在函数外部或函数开头定义 */
+#if defined(BOARD_Woloong_U2C)
 static uint32_t heartbeat_last_tick = 0;
 static uint8_t heartbeat_state = 0;
+static uint8_t heartbeat_selftest_done = 0;
+#endif
 
 void __weak _close(void) {
 }
@@ -89,7 +66,6 @@ int main(void)
 				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
 				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
-
 		can_init(channel, channel_config);
 		can_disable(channel);
 	}
@@ -99,17 +75,33 @@ int main(void)
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB);
 	USBD_Start(&hUSB);
 
-	/* nice wake-up pattern */
+	/* nice wake-up pattern - 原有 RX/TX LED 交替闪烁 */
 	for (uint8_t j = 0; j < 10; j++) {
 		HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
 		HAL_Delay(50);
 		HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
+		HAL_Delay(50);
 	}
+
+	/* ========== 上电自检：PC13 快速闪烁 3 次 ========== */
+#if defined(BOARD_Woloong_U2C)
+	for (int i = 0; i < 3; i++) {
+		/* LED 点亮（低电平） */
+		HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, GPIO_PIN_RESET);
+		HAL_Delay(100);
+		/* LED 熄灭（高电平） */
+		HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, GPIO_PIN_SET);
+		HAL_Delay(100);
+	}
+	/* 自检完成后熄灭，初始化心跳状态 */
+	HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, GPIO_PIN_SET);
+	heartbeat_selftest_done = 1;
+	heartbeat_last_tick = HAL_GetTick();
+#endif
 
 	while (1) {
 		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
 			can_data_t *channel = &hGS_CAN.channels[i];
-
 			CAN_SendFrame(&hGS_CAN, channel);
 		}
 
@@ -118,27 +110,29 @@ int main(void)
 
 		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
 			can_data_t *channel = &hGS_CAN.channels[i];
-
 			CAN_ReceiveFrame(&hGS_CAN, channel);
 			CAN_HandleError(&hGS_CAN, channel);
-
 			led_update(&channel->leds);
 		}
 
 		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
 			dfu_run_bootloader();
 		}
-	}
-}
 
-/* 在主循环 while(1) 中添加 */
 #if defined(BOARD_Woloong_U2C)
-    uint32_t now = HAL_GetTick();
-    if ((now - heartbeat_last_tick) >= 1500) {  /* 1.5s 间隔 */
-        heartbeat_last_tick = now;
-        heartbeat_state = !heartbeat_state;
-        HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin,
-            heartbeat_state ? (LEDRUN_Active_High ? GPIO_PIN_SET : GPIO_PIN_RESET)
-                            : (LEDRUN_Active_High ? GPIO_PIN_RESET : GPIO_PIN_SET));
-    }
+		/* 心跳 LED：1.5s 间隔闪烁 */
+		if (heartbeat_selftest_done) {
+			uint32_t now = HAL_GetTick();
+			if ((now - heartbeat_last_tick) >= 1500) {
+				heartbeat_last_tick = now;
+				heartbeat_state = !heartbeat_state;
+				/* 低电平有效：state=1 点亮，state=0 熄灭 */
+				HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin,
+					heartbeat_state ? GPIO_PIN_RESET : GPIO_PIN_SET);
+			}
+		}
 #endif
+	}  /* while(1) 结束 */
+
+	return 0;  /* 永远不会执行到这里，但保持规范 */
+}
