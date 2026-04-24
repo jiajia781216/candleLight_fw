@@ -49,6 +49,10 @@ THE SOFTWARE.
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 
+/* 在 main.c 顶部或合适位置添加静态变量 */
+static uint32_t heartbeat_last_tick = 0;
+static uint8_t heartbeat_state = 0;
+
 void __weak _close(void) {
 }
 void __weak _lseek(void) {
@@ -126,3 +130,15 @@ int main(void)
 		}
 	}
 }
+
+/* 在主循环 while(1) 中添加 */
+#if defined(BOARD_Woloong_U2C)
+    uint32_t now = HAL_GetTick();
+    if ((now - heartbeat_last_tick) >= 1500) {  /* 1.5s 间隔 */
+        heartbeat_last_tick = now;
+        heartbeat_state = !heartbeat_state;
+        HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin,
+            heartbeat_state ? (LEDRUN_Active_High ? GPIO_PIN_SET : GPIO_PIN_RESET)
+                            : (LEDRUN_Active_High ? GPIO_PIN_RESET : GPIO_PIN_SET));
+    }
+#endif
