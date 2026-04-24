@@ -127,6 +127,18 @@ void gpio_init(void)
 		HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct);     //xceiver standby.
 	}
 
+#if defined(BOARD_Woloong_U2C)
+    GPIO_InitTypeDef run_gpio = {
+        .Pin = LEDRUN_Pin,
+        .Mode = LEDRUN_Mode,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW
+    };
+    HAL_GPIO_Init(LEDRUN_GPIO_Port, &run_gpio);
+    HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, 
+        GPIO_INIT_STATE(LEDRUN_Active_High));  /* 初始状态 */
+#endif
+
 #ifdef DCDCEN_Pin
 	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);
 	GPIO_InitStruct.Pin = DCDCEN_Pin;
