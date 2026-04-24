@@ -366,8 +366,8 @@ THE SOFTWARE.
 	/* 添加PC13作为固件运行指示灯 */
 	#define LEDRUN_GPIO_Port        GPIOC
 	#define LEDRUN_Pin              GPIO_PIN_13
-	#define LEDRUN_Mode             GPIO_MODE_OUTPUT_PP   /* 或 OD，根据硬件 */
-	#define LEDRUN_Active_High      1                     /* 1=高电平亮，0=低电平亮 */
+	#define LEDRUN_Mode             GPIO_MODE_OUTPUT_PP   /* 推挽输出 */
+	#define LEDRUN_Active_High      0                     /* 0 = 低电平亮 */
 
 /*************** STM32F407 ***************/
 
