@@ -128,15 +128,15 @@ void gpio_init(void)
 	}
 
 #if defined(BOARD_Woloong_U2C)
-    GPIO_InitTypeDef run_gpio = {
-        .Pin = LEDRUN_Pin,
-        .Mode = LEDRUN_Mode,
-        .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_FREQ_LOW
-    };
-    HAL_GPIO_Init(LEDRUN_GPIO_Port, &run_gpio);
-    HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, 
-        GPIO_INIT_STATE(LEDRUN_Active_High));  /* 初始状态 */
+	GPIO_InitTypeDef run_gpio = {
+		.Pin = LEDRUN_Pin,
+		.Mode = LEDRUN_Mode,
+		.Pull = GPIO_NOPULL,
+		.Speed = GPIO_SPEED_FREQ_LOW
+	};
+	HAL_GPIO_Init(LEDRUN_GPIO_Port, &run_gpio);
+	/* 初始熄灭（高电平） */
+	HAL_GPIO_WritePin(LEDRUN_GPIO_Port, LEDRUN_Pin, GPIO_PIN_SET);
 #endif
 
 #ifdef DCDCEN_Pin
